@@ -1,6 +1,5 @@
-import json
 import cli
-
+import json
 from simple_ddl_parser import DDLParser
 
 
@@ -30,12 +29,12 @@ def generate_header():
 
 
 def generate_tables(ddl):
-    return [format_table(t) for t in ddl]
+    return [format_table(t) for t in ddl if is_table(t)]
 
 
 def generate_relationships(ddl):
     result = []
-    for table in [tbl for tbl in ddl if tbl.get('constraints')]:
+    for table in [tbl for tbl in ddl if has_constraints(tbl)]:
         from_table = format_table_name(table)
         for reference in table['constraints'].get('references', []):
             result.append(format_fk_relationship(from_table, reference))
@@ -44,7 +43,8 @@ def generate_relationships(ddl):
 
 
 def format_table_name(entity):
-    return f"{entity['schema']}_{entity['table_name']}"
+    schema = entity.get('schema')
+    return entity['table_name'] if schema is None else f"{schema}_{entity['table_name']}"
 
 
 def format_table(table):
@@ -57,6 +57,21 @@ def format_table(table):
 
     return result
 
+def format_size(size):
+    if isinstance(size,int):
+        return str(size)
+    else:
+        return ','.join([str(i) for i in size])
+
+def is_table(node):
+    return node and node.get('table_name') is not None
+
+
+def has_constraints(node):
+    if not is_table(node):
+        return False
+    return node.get('constraints') is not None
+
 
 def format_fk_relationship(source_table, reference):
     return f"{source_table} --|> {reference['schema']}_{reference['table']} : {', '.join(reference['columns'])}"
@@ -64,18 +79,23 @@ def format_fk_relationship(source_table, reference):
 
 def format_column(column):
     size = column.get('size')
-    sql_type = f"{column['type']}#40;{size}#41;" if size else column['type']
-    return f"{column['name']} { sql_type}"
+    
+    sql_type = f"{column['type']}"
+        
+    size_spec = '' if size is None else f"#40;{format_size(size)}#41;"
 
-
-ddl = None
+    return f"{column['name']} {sql_type}{size_spec}"
 
 
 if __name__ == "__main__":
     args = cli.get_args()
+    ddl = None
 
     with open(args.ddl, 'r') as f:
         sql_text = f.read()
         ddl = parse(sql_text)
 
-    generate_class_diagram(ddl)
+    if args.dump:
+        print(json.dumps(ddl, indent=4, sort_keys=True))
+    else:
+        generate_class_diagram(ddl)

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS marklar.T1(
 CREATE TABLE IF NOT EXISTS marklar.T2(
     F1 int PRIMARY KEY,
     F2 bit,
-    F3 float,
+    F3 numeric(10, 3),
     F4 decimal(64),    
 
 CONSTRAINT FK_Bar FOREIGN KEY (BarId)
