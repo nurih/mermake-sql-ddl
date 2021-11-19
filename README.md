@@ -1,7 +1,7 @@
 # Mermake
 
 ## What?
-It [makes] a [Mer]maid diagram given an SQL ddl file.
+It [makes] a [Mer]maid diagram given an SQL DDL file.
 
 Given some SQL table definition, it generates a MermaidJS diagram, which you can then embed, export as SVG or PNG or whatever.
 
