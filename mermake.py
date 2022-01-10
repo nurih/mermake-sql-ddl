@@ -57,11 +57,13 @@ def format_table(table):
 
     return result
 
+
 def format_size(size):
-    if isinstance(size,int):
+    if isinstance(size, int):
         return str(size)
     else:
         return ','.join([str(i) for i in size])
+
 
 def is_table(node):
     return node and node.get('table_name') is not None
@@ -79,12 +81,33 @@ def format_fk_relationship(source_table, reference):
 
 def format_column(column):
     size = column.get('size')
-    
+
     sql_type = f"{column['type']}"
-        
+
     size_spec = '' if size is None else f"#40;{format_size(size)}#41;"
 
     return f"{column['name']} {sql_type}{size_spec}"
+
+
+def generate_flat(ddl):
+    tables = [format_flat_line(t) for t in ddl if is_table(t)]
+
+    for table in tables:
+        for line in table:
+            print(*line, sep=',')
+
+
+def format_flat_line(table):
+    result = []
+    table_name = format_table_name(table)
+
+    if 'columns' in table:
+        for column in table.get('columns'):
+            column_name = column['name']            
+            is_pk = bool(column_name in table['primary_key'])
+            result.append([table_name, column_name, is_pk])
+
+    return result
 
 
 if __name__ == "__main__":
@@ -97,5 +120,7 @@ if __name__ == "__main__":
 
     if args.dump:
         print(json.dumps(ddl, indent=4, sort_keys=True))
+    elif args.flat:
+        print(generate_flat(ddl))
     else:
         generate_class_diagram(ddl)
