@@ -99,13 +99,14 @@ def generate_flat(ddl):
 
 def format_flat_line(table):
     result = []
-    table_name = format_table_name(table)
+    schema = table.get('schema', '')
+    table_name = table.get('table_name')
 
     if 'columns' in table:
         for column in table.get('columns'):
-            column_name = column['name']            
+            column_name = column['name']
             is_pk = bool(column_name in table['primary_key'])
-            result.append([table_name, column_name, is_pk])
+            result.append([schema, table_name, column_name, is_pk])
 
     return result
 
@@ -121,6 +122,6 @@ if __name__ == "__main__":
     if args.dump:
         print(json.dumps(ddl, indent=4, sort_keys=True))
     elif args.flat:
-        print(generate_flat(ddl))
+        generate_flat(ddl)
     else:
         generate_class_diagram(ddl)
